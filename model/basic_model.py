@@ -65,7 +65,7 @@ class BasicModel(tf.keras.Model):
 
         loss_cls = self.classifier.obj(ll, pred, step)
 
-        loss = loss_ae + loss_cls + loss_adj * .3
+        loss = loss_ae + loss_cls + loss_adj
 
         if step >= 0:
             tf.summary.scalar('loss_all/loss', loss, step=step)

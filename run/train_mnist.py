@@ -6,7 +6,7 @@ from time import gmtime, strftime
 from model.basic_model import BasicModel as Model
 from util.data.basic_data import BasicData as Data
 from util.data.processing import DATASET_CLASS_COUNT, DATASET_SHAPE
-from util import eval, scheduler
+from util import eval  # , scheduler
 
 from meta import ROOT_PATH
 
@@ -65,7 +65,8 @@ def main():
     share_encoder = True
     model = Model(set_name, latent_size, class_num, share_encoder=share_encoder, temp=temp, l2=l2)
     data = Data(set_name, batch_size, num_labeled=num_labeled, label_map_index=0)
-    lr = scheduler.CustomSchedule(latent_size, 2000)
+    # lr = scheduler.CustomSchedule(latent_size, 2000)
+    lr = 1e-4
     opt = tf.keras.optimizers.Adam(lr, beta_1=0.9, beta_2=0.98,
                                    epsilon=1e-9)
 
@@ -85,11 +86,10 @@ def main():
     for i in range(max_iter):
         with writer.as_default():
             train_loss = step_train(model, data, opt, i)
-            print('Step: {}, Loss: {}'.format(i, train_loss.numpy()))
             if i == 0:
                 print(model.summary())
             if (i + 1) % 200 == 0:
-                print('-----------Testing-----------')
+                print('Step: {}, Loss: {}'.format(i, train_loss.numpy()))
                 test_acc = step_val(model, data, i)
                 print('Hook: {}, acc: {}'.format(i, test_acc.numpy()))
 

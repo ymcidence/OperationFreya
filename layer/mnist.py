@@ -19,13 +19,20 @@ class Encoder(tf.keras.layers.Layer):
         super().__init__(**kwargs)
         self.net = tf.keras.Sequential([
             tf.keras.layers.GaussianNoise(stddev=.3),
-            tf.keras.layers.Dense(1024, activation=tf.nn.relu),
+            tfa.layers.WeightNormalization(tf.keras.layers.Dense(1024)),
+            tf.keras.layers.ReLU(),
             tf.keras.layers.GaussianNoise(stddev=.5),
-            tf.keras.layers.Dense(512, activation=tf.nn.relu),
+            tfa.layers.WeightNormalization(tf.keras.layers.Dense(512)),
+            tf.keras.layers.ReLU(),
             tf.keras.layers.GaussianNoise(stddev=.5),
-            tf.keras.layers.Dense(256, activation=tf.nn.relu),
+            tfa.layers.WeightNormalization(tf.keras.layers.Dense(256)),
+            tf.keras.layers.ReLU(),
             tf.keras.layers.GaussianNoise(stddev=.5),
-            tf.keras.layers.Dense(256, activation=tf.nn.relu)
+            tfa.layers.WeightNormalization(tf.keras.layers.Dense(256)),
+            tf.keras.layers.ReLU(),
+            tf.keras.layers.GaussianNoise(stddev=.5),
+            tfa.layers.WeightNormalization(tf.keras.layers.Dense(256)),
+            tf.keras.layers.ReLU(),
         ])
 
     def call(self, inputs, training=True, **kwargs):
@@ -42,7 +49,8 @@ class Decoder(tf.keras.layers.Layer):
             tf.keras.layers.Dense(512),
             tf.keras.layers.BatchNormalization(),
             Dummy(tf.nn.softplus),
-            tfa.layers.WeightNormalization(tf.keras.layers.Dense(784, tf.nn.sigmoid))
+            tfa.layers.WeightNormalization(tf.keras.layers.Dense(784)),
+            Dummy(tf.nn.sigmoid)
         ])
 
     def call(self, inputs, training=True, **kwargs):

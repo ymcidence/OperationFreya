@@ -43,7 +43,7 @@ class BasicData(object):
         u_data = u_data.filter(filter_2)
 
         s_data = s_data.cache().repeat().shuffle(self.num_labeled).batch(self.batch_size)
-        u_data = u_data.cache().repeat().shuffle(10000).batch(self.batch_size)
+        u_data = u_data.cache().repeat().shuffle(20000).batch(self.batch_size)
 
         return iter(s_data), iter(u_data)
 
@@ -51,7 +51,7 @@ class BasicData(object):
         parser = processing.construct_parser(self.set_name)
         test_data = tf.data.TFRecordDataset(processing.get_filenames(self.set_name, 'test')
                                             ).map(parser, num_parallel_calls=8).prefetch(50)
-        return iter(test_data.cache().repeat().shuffle(1000).batch(self.batch_size))
+        return iter(test_data.cache().repeat().shuffle(10000).batch(self.batch_size))
 
     def next_train(self):
         return next(self.d_s_train), next(self.d_u_train)

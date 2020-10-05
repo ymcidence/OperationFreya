@@ -31,8 +31,8 @@ def main():
 
     # opt = tf.optimizers.RMSprop(lr)
 
-    name = 'ASgNL{}Share{}Tmp{}l2{}LS{}'.format(num_labeled, share_encoder, temp, l2, latent_size)
-    # name = 'TestSG'
+    # name = 'augNL{}Share{}Tmp{}l2{}LS{}'.format(num_labeled, share_encoder, temp, l2, latent_size)
+    name = 'consistency'
     time_string = name + '_' + strftime("%d%b-%H%M", gmtime())
     result_path = os.path.join(ROOT_PATH, 'result', set_name)
     save_path = os.path.join(result_path, 'model', time_string)

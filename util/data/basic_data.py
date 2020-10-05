@@ -5,11 +5,12 @@ from util.data import processing
 
 
 class BasicData(object):
-    def __init__(self, set_name, batch_size=256, num_labeled=100, label_map_index=0):
+    def __init__(self, set_name, batch_size=256, num_labeled=100, label_map_index=0, aug=True):
         self.set_name = set_name
         self.batch_size = batch_size
         self.num_labeled = num_labeled
         self.label_map_index = label_map_index
+        self.aug = aug
         self.d_s_train, self.d_u_train = self._training_data()
         self.d_test = self._test_data()
 

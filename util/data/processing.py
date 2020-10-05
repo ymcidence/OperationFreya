@@ -7,6 +7,7 @@ import os
 from absl import flags
 import numpy as np
 import tensorflow as tf
+import tensorflow_addons as tfa
 from tensorflow.python.platform import gfile
 from util.data import path
 
@@ -66,6 +67,46 @@ DATASET_EXAMPLE_COUNT = {
         "mnist": 5000
     },
 }
+
+
+def img_processing(x):
+    x = fast_flip(x)
+    x = jitter(x)
+    return x
+
+
+def fast_flip(images):
+    def func(inp):
+        batch_size = tf.shape(inp)[0]
+        flips = tf.cast(tf.random.uniform([batch_size, 1, 1, 1], 0, 2, tf.int32), dtype=tf.float32)
+        flipped_inp = tf.reverse(inp, [2])
+        return flips * flipped_inp + (1 - flips) * images
+
+    return func(images)
+
+
+def jitter(input_data):
+    def func(inp):
+        bsz = tf.shape(inp)[0]
+        inp = tf.pad(inp, [[0, 0], [2, 2], [2, 2], [0, 0]], mode="REFLECT")
+        base = tf.constant(
+            [1, 0, 0, 0, 1, 0, 0, 0], shape=[1, 8], dtype=tf.float32
+        )
+        base = tf.tile(base, [bsz, 1])
+        mask = tf.constant(
+            [0, 0, 1, 0, 0, 1, 0, 0], shape=[1, 8], dtype=tf.float32
+        )
+        mask = tf.tile(mask, [bsz, 1])
+        jit = tf.random.uniform([bsz, 8], minval=-2, maxval=3, dtype=tf.int32)
+        jit = tf.cast(jit, tf.float32)
+        xforms = base + jit * mask
+        processed_data = tfa.image.transform(
+            images=inp, transforms=xforms
+        )
+        cropped_data = processed_data[:, 2:-2, 2:-2, :]
+        return cropped_data
+
+    return func(input_data)
 
 
 def split_label_unlabel(labels, set_name, labeled_num):
@@ -229,7 +270,7 @@ def parse_small_example(
     if apply_normalization:
         # Convert from [0, 255] -> [-1., 1.] floats.
         image = tf.cast(image, tf.float32)
-        image = image * (1. / 255) # - 0.5
+        image = image * (1. / 255)  # - 0.5
         # image *= 2.
 
     # Reshape the images

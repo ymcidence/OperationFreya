@@ -14,6 +14,15 @@ class BasicData(object):
         self.d_s_train, self.d_u_train = self._training_data()
         self.d_test = self._test_data()
 
+        if isinstance(batch_size, list):
+            self.s_size = batch_size[0]
+            self.u_size = batch_size[1]
+        else:
+            s_size = batch_size // 3
+            self.s_size = s_size if s_size <= 100 else 100
+            self.u_size = batch_size - self.s_size
+        self.t_size = self.u_size + self.s_size
+
     def _f_semi_supervised_filtering(self):
         """
         :return: a filtering function to separate labeled-unlabeled data for Dataset objects
@@ -43,8 +52,8 @@ class BasicData(object):
         s_data = s_data.filter(filter_1)
         u_data = u_data.filter(filter_2)
 
-        s_data = s_data.cache().repeat().shuffle(self.num_labeled).batch(self.batch_size)
-        u_data = u_data.cache().repeat().shuffle(20000).batch(self.batch_size)
+        s_data = s_data.cache().repeat().shuffle(self.num_labeled).batch(self.s_size)
+        u_data = u_data.cache().repeat().shuffle(20000).batch(self.u_size)
 
         return iter(s_data), iter(u_data)
 
@@ -52,7 +61,7 @@ class BasicData(object):
         parser = processing.construct_parser(self.set_name)
         test_data = tf.data.TFRecordDataset(processing.get_filenames(self.set_name, 'test')
                                             ).map(parser, num_parallel_calls=8).prefetch(50)
-        return iter(test_data.cache().repeat().shuffle(10000).batch(self.batch_size))
+        return iter(test_data.cache().repeat().shuffle(10000).batch(self.t_size))
 
     def next_train(self):
         return next(self.d_s_train), next(self.d_u_train)

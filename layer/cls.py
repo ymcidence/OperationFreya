@@ -20,7 +20,12 @@ class ContextClassifier(tf.keras.layers.Layer):
         self.bias = tf.Variable(initial_value=tf.zeros([class_num], dtype=tf.float32), trainable=True,
                                 dtype=tf.float32, name='bias')
         self.temp = temp
-        self.fc = tf.keras.layers.Dense(latent_size)
+        self.fc = tf.keras.Sequential([
+            tf.keras.layers.Dense(latent_size),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.ReLU(),
+            tf.keras.layers.Dropout(.1)
+        ])
         self.bn = tf.keras.layers.BatchNormalization()
 
     # noinspection PyMethodOverriding
@@ -35,7 +40,7 @@ class ContextClassifier(tf.keras.layers.Layer):
         :return:
         """
         x = self.backbone(inputs, training=training) if self.backbone is not None else inputs
-        x = self.fc(x)
+        x = self.fc(x, training=training)
         if self.l2:
             x = tf.nn.l2_normalize(x, axis=1)  # [N d]
         x = tf.matmul(x, context, transpose_b=True) + self.bias

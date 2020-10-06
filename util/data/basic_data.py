@@ -5,11 +5,12 @@ from util.data import processing
 
 
 class BasicData(object):
-    def __init__(self, set_name, batch_size=256, num_labeled=100, label_map_index=0):
+    def __init__(self, set_name, batch_size=256, num_labeled=100, label_map_index=0, aug=True):
         self.set_name = set_name
         self.batch_size = batch_size
         self.num_labeled = num_labeled
         self.label_map_index = label_map_index
+        self.aug = aug
         self.d_s_train, self.d_u_train = self._training_data()
         self.d_test = self._test_data()
 
@@ -43,7 +44,7 @@ class BasicData(object):
         u_data = u_data.filter(filter_2)
 
         s_data = s_data.cache().repeat().shuffle(self.num_labeled).batch(self.batch_size)
-        u_data = u_data.cache().repeat().shuffle(10000).batch(self.batch_size)
+        u_data = u_data.cache().repeat().shuffle(20000).batch(self.batch_size)
 
         return iter(s_data), iter(u_data)
 
@@ -51,7 +52,7 @@ class BasicData(object):
         parser = processing.construct_parser(self.set_name)
         test_data = tf.data.TFRecordDataset(processing.get_filenames(self.set_name, 'test')
                                             ).map(parser, num_parallel_calls=8).prefetch(50)
-        return iter(test_data.cache().repeat().shuffle(1000).batch(self.batch_size))
+        return iter(test_data.cache().repeat().shuffle(10000).batch(self.batch_size))
 
     def next_train(self):
         return next(self.d_s_train), next(self.d_u_train)
@@ -61,6 +62,9 @@ class BasicData(object):
 
 
 if __name__ == '__main__':
+    import numpy as np
+
     data = BasicData('mnist', 128)
     a = data.next_train()
-    print(a)
+    for i in range(10):
+        print(i, np.sum(np.where(a[0][1].numpy() == i)))

@@ -21,11 +21,11 @@ class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
 
 if __name__ == '__main__':
     step = tf.constant(1.)
-    warmup_steps = 1000
-    d_model = 128.
+    warmup_steps = 2000
+    d_model = 256.
 
-    for i in range(0, 10000, 1000):
+    for i in range(0, 10000, 100):
         step = tf.constant(i, dtype=tf.float32)
         arg1 = tf.math.rsqrt(step)
         arg2 = step * (warmup_steps ** -1.5)
-        print(tf.math.rsqrt(d_model) * tf.math.minimum(arg1, arg2))
+        print(i, tf.math.rsqrt(d_model) * tf.math.minimum(arg1, arg2))

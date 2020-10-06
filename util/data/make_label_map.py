@@ -113,7 +113,7 @@ def build_single_label_map(
 
 
 if __name__ == "__main__":
-#     FLAGS.dataset_name = "mnist"
+    #     FLAGS.dataset_name = "mnist"
     for i in range(10):
         FLAGS.label_map_index = i
         FLAGS.seed = i

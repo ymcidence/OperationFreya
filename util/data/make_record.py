@@ -252,5 +252,5 @@ def main(_):
 
 
 if __name__ == "__main__":
-#     FLAGS.dataset_name = "mnist"
+    #     FLAGS.dataset_name = "mnist"
     app.run(main)

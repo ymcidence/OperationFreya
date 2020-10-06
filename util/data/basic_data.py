@@ -62,6 +62,9 @@ class BasicData(object):
 
 
 if __name__ == '__main__':
+    import numpy as np
+
     data = BasicData('mnist', 128)
     a = data.next_train()
-    print(a)
+    for i in range(10):
+        print(i, np.sum(np.where(a[0][1].numpy() == i)))

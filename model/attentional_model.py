@@ -115,7 +115,7 @@ def step_train(model: AttentionalModel, data: Data, opt: tf.keras.optimizers.Opt
             ll = tf.one_hot(ll, DATASET_CLASS_COUNT[data.set_name])
 
         sim = tf.expand_dims(tf.expand_dims(tf.matmul(ll, ll, transpose_b=True), 0), -1)
-        tf.summary.image('img', s_d[0], step=step, max_outputs=1)
+        # tf.summary.image('img', s_d[0], step=step, max_outputs=1)
         tf.summary.image('gt/adj', sim, step=step, max_outputs=1)
         tf.summary.scalar('train/acc', acc, step=step)
         tf.summary.scalar('train/err', err, step=step)

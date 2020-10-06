@@ -107,7 +107,7 @@ def step_train(model: AttentionalModel, data: Data, opt: tf.keras.optimizers.Opt
         gradient = tape.gradient(loss, sources=model.trainable_variables)
         opt.apply_gradients(zip(gradient, model.trainable_variables))
     if summary_step >= 0:
-        acc = eval.acc(s_d[1], pred[:data.batch_size, :])
+        acc = eval.acc(s_d[1], pred[:data.s_size, :])
         err = 1 - acc
 
         ll = tf.concat([batch_feed[2], batch_feed[3]], axis=0)

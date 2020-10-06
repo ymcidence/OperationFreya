@@ -11,17 +11,17 @@ class BasicData(object):
         self.num_labeled = num_labeled
         self.label_map_index = label_map_index
         self.aug = aug
-        self.d_s_train, self.d_u_train = self._training_data()
-        self.d_test = self._test_data()
-
         if isinstance(batch_size, list):
             self.s_size = batch_size[0]
             self.u_size = batch_size[1]
+            self.batch_size = self.s_size + self.u_size
         else:
             s_size = batch_size // 3
             self.s_size = s_size if s_size <= 100 else 100
             self.u_size = batch_size - self.s_size
         self.t_size = self.u_size + self.s_size
+        self.d_s_train, self.d_u_train = self._training_data()
+        self.d_test = self._test_data()
 
     def _f_semi_supervised_filtering(self):
         """

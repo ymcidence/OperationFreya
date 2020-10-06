@@ -12,7 +12,7 @@ from util import scheduler
 from meta import ROOT_PATH
 
 
-def main(name, max_iter=150000, set_name='mnist', num_labeled=100, batch_size=100, share_encoder=True, restore=None):
+def main(name, batch_size, max_iter=150000, set_name='mnist', num_labeled=100, share_encoder=True, restore=None):
     latent_size = 256
     class_num = DATASET_CLASS_COUNT[set_name]
 
@@ -64,4 +64,5 @@ if __name__ == '__main__':
     name = 'not_sharing'
     restore_file = os.path.join(ROOT_PATH, 'result', set_name, 'model', 'consistency_05Oct-1318', '_149999-30')
     share_encoder = False
-    main(name=name, max_iter=350000, set_name='mnist', share_encoder=share_encoder, restore=None)
+    batch_size = [100, 150]
+    main(name=name, batch_size=batch_size, max_iter=350000, set_name='mnist', share_encoder=share_encoder, restore=None)

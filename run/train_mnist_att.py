@@ -20,10 +20,11 @@ def main(name, batch_size, max_iter=150000, set_name='mnist', num_labeled=100, s
     temp = 1
     model = Model(set_name, latent_size, class_num, share_encoder=share_encoder, temp=temp, l2=l2)
     data = Data(set_name, batch_size, num_labeled=num_labeled, label_map_index=0)
-    lr = scheduler.CustomSchedule(latent_size, 2000)
-    # lr = 5e-6
-    opt = tf.keras.optimizers.Adam(lr, beta_1=0.9, beta_2=0.98,
-                                   epsilon=1e-9)
+    # lr = scheduler.CustomSchedule(latent_size, 2000)
+    lr = 2e-4
+    # opt = tf.keras.optimizers.Adam(lr, beta_1=0.9, beta_2=0.98,
+    #                                epsilon=1e-9)
+    opt = tf.keras.optimizers.Adam(lr)
 
     # opt = tf.optimizers.RMSprop(lr)
 

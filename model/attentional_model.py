@@ -27,10 +27,12 @@ class AttentionalModel(tf.keras.Model):
 
         self.encoder = self.encodec.Encoder()
         self.decoder = self.encodec.Decoder()
-        self.aggregator = InducedSetAttentionBlock(latent_size, 1, latent_size)
-
+        self._agg()
         cls_backbone = None if share_encoder else self.encodec.Encoder()
         self.classifier = cls.ContextClassifier(latent_size, class_num, cls_backbone, temp, l2=l2)
+
+    def _agg(self):
+        self.aggregator = InducedSetAttentionBlock(self.latent_size, 1, self.latent_size)
 
     def call(self, inputs, training=None, mask=None, step=-1):
 

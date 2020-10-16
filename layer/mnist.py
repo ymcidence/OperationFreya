@@ -4,14 +4,7 @@ import tensorflow as tf
 
 import tensorflow_addons as tfa
 
-
-class Dummy(tf.keras.layers.Layer):
-    def __init__(self, f, **kwargs):
-        super().__init__(**kwargs)
-        self.f = f
-
-    def call(self, inputs, **kwargs):
-        return self.f(inputs)
+from layer.functional import Dummy
 
 
 class Encoder(tf.keras.layers.Layer):

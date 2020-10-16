@@ -42,3 +42,12 @@ def build_adjacency(feature):
     adj = tf.nn.relu(row_distance_cosine(feature, feature))
     adj = tf.pow(adj, 1)
     return adj
+
+
+class Dummy(tf.keras.layers.Layer):
+    def __init__(self, f, **kwargs):
+        super().__init__(**kwargs)
+        self.f = f
+
+    def call(self, inputs, **kwargs):
+        return self.f(inputs)

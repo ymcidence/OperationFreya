@@ -13,7 +13,7 @@ import numpy as np
 from util.data import processing as dataset_utils
 from util.data import path as paths
 
-flags.DEFINE_string("dataset_name", "default", "Name of source dataset.")
+flags.DEFINE_string("dataset_name", "cifar10", "Name of source dataset.")
 flags.DEFINE_string(
     "n_labeled_list",
     "20,50,100,250,500,1000,2000,4000,8000",

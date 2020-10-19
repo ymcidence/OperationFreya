@@ -270,8 +270,8 @@ def parse_small_example(
     if apply_normalization:
         # Convert from [0, 255] -> [-1., 1.] floats.
         image = tf.cast(image, tf.float32)
-        image = image * (1. / 255)  # - 0.5
-        # image *= 2.
+        image = image * (1. / 255) - 0.5
+        image *= 2.
 
     # Reshape the images
     image = tf.reshape(image, image_shape)

@@ -2,17 +2,17 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import tensorflow as tf
 import numpy as np
 
-from layer import mnist, cls, cnn
+from layer import mnist, cls, cifar, svhn
 from layer.transformer.isab import InducedSetAttentionBlock
 from util.data.basic_data import BasicData as Data
 from util.data.processing import DATASET_CLASS_COUNT, DATASET_SHAPE, DATASET_EXAMPLE_COUNT, img_processing
 from util import eval
 
 ENCODEC = {'mnist': mnist,
-           'cifar10': cnn,
-           'svhn': cnn,
-           'svhn_extra': cnn,
-           'cifar_unnormalized': cnn}
+           'cifar10': cifar,
+           'svhn': svhn,
+           'svhn_extra': svhn,
+           'cifar_unnormalized': cifar}
 
 
 class AttentionalModel(tf.keras.Model):
@@ -27,7 +27,7 @@ class AttentionalModel(tf.keras.Model):
         self.context = tf.Variable(initial_value=tf.random.normal([class_num, latent_size], stddev=.01), trainable=True,
                                    dtype=tf.float32, name='ContextEmb')
 
-        self.encodec = ENCODEC.get(set_name, cnn)
+        self.encodec = ENCODEC[set_name]
 
         self.encoder = self.encodec.Encoder()
         self.decoder = self.encodec.Decoder()

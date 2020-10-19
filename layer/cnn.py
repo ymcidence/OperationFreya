@@ -1,7 +1,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import tensorflow as tf
-import tensorflow_addons as tfa
 from layer.functional import Dummy
 
 
@@ -31,7 +30,8 @@ def _encoding_v1(filter_size=(64, 128, 128), p=.5):
 def _decoding_v1():
     def _t_conv_unit(_f, _k, _s, _p):
         return tf.keras.Sequential(
-            [tf.keras.layers.Conv2DTranspose(_f, _k, _s, padding='SAME', output_padding=_p, data_format='channel_last'),
+            [tf.keras.layers.Conv2DTranspose(_f, _k, _s, padding='SAME', output_padding=_p,
+                                             data_format='channels_last'),
              tf.keras.layers.BatchNormalization(),
              tf.keras.layers.ReLU()])
 
@@ -42,36 +42,13 @@ def _decoding_v1():
         tf.keras.layers.Reshape((4, 4, 512)),
         _t_conv_unit(256, 5, 2, 1),
         _t_conv_unit(128, 5, 2, 1),
-        tfa.layers.WeightNormalization(
-            tf.keras.layers.Conv2DTranspose(3, 5, 2, padding='SAME', output_padding=1, data_format='channel_last')),
+        tf.keras.layers.Conv2DTranspose(3, 5, 2, padding='SAME', output_padding=1, data_format='channels_last'),
         Dummy(tf.nn.tanh)])
 
     return net
 
 
-class SVHNEncoder(tf.keras.layers.Layer):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.filter_size = (64, 128, 128)
-        self.net = _encoding_v1(self.filter_size)
-
-    def call(self, inputs, training=True, **kwargs):
-        x = self.net(inputs)
-        return tf.reduce_mean(x, axis=[1, 2])
-
-
-class CIFAREncoder(tf.keras.layers.Layer):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.filter_size = (96, 192, 192)
-        self.net = _encoding_v1(self.filter_size)
-
-    def call(self, inputs, training=True, **kwargs):
-        x = self.net(inputs, training=training)
-        return tf.reduce_mean(x, axis=[1, 2])
-
-
-class SVHNDecoder(tf.keras.layers.Layer):
+class CNNDecoder(tf.keras.layers.Layer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.net = _decoding_v1()
@@ -80,5 +57,7 @@ class SVHNDecoder(tf.keras.layers.Layer):
         return self.net(inputs, training=training)
 
 
-Encoder = SVHNEncoder
-Decoder = SVHNDecoder
+if __name__ == '__main__':
+    model = CNNDecoder()
+    img = tf.zeros([5, 128])
+    print(model(img))

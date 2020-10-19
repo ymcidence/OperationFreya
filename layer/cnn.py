@@ -80,4 +80,5 @@ class SVHNDecoder(tf.keras.layers.Layer):
         return self.net(inputs, training=training)
 
 
-CIFARDecoder = SVHNDecoder
+Encoder = SVHNEncoder
+Decoder = SVHNDecoder

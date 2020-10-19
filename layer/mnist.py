@@ -43,7 +43,7 @@ class Decoder(tf.keras.layers.Layer):
             tf.keras.layers.BatchNormalization(),
             Dummy(tf.nn.softplus),
             tfa.layers.WeightNormalization(tf.keras.layers.Dense(784)),
-            Dummy(tf.nn.sigmoid)
+            Dummy(tf.nn.tanh)
         ])
 
     def call(self, inputs, training=True, **kwargs):

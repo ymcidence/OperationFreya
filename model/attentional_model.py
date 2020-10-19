@@ -98,11 +98,17 @@ class AttentionalModel(tf.keras.Model):
 def step_train(model: AttentionalModel, data: Data, opt: tf.keras.optimizers.Optimizer, step):
     epoch = step // (DATASET_EXAMPLE_COUNT['train'][data.set_name] / data.batch_size)
     s_d, u_d = data.next_train()
-    shape = np.prod(DATASET_SHAPE[data.set_name][1:])
-    s1 = tf.reshape(img_processing(s_d[0]), [-1, shape])
-    s2 = tf.reshape(img_processing(s_d[0]), [-1, shape])
-    u1 = tf.reshape(img_processing(u_d[0]), [-1, shape])
-    u2 = tf.reshape(img_processing(u_d[0]), [-1, shape])
+
+    s1 = img_processing(s_d[0])
+    s2 = img_processing(s_d[0])
+    u1 = img_processing(u_d[0])
+    u2 = img_processing(u_d[0])
+    if data.set_name == 'mnist':
+        shape = np.prod(DATASET_SHAPE[data.set_name][1:])
+        s1 = tf.reshape(img_processing(s_d[0]), [-1, shape])
+        s2 = tf.reshape(img_processing(s_d[0]), [-1, shape])
+        u1 = tf.reshape(img_processing(u_d[0]), [-1, shape])
+        u2 = tf.reshape(img_processing(u_d[0]), [-1, shape])
     batch_feed = [s1, s2, u1, u2, s_d[1], u_d[1]]
     batch_feed = [tf.identity(i) for i in batch_feed]
     summary_step = -1 if step % 50 > 0 else step
@@ -131,8 +137,10 @@ def step_train(model: AttentionalModel, data: Data, opt: tf.keras.optimizers.Opt
 
 def step_val(model: AttentionalModel, data: Data, step):
     t_d = data.next_test()
-    shape = np.prod(DATASET_SHAPE[data.set_name][1:])
-    d = tf.reshape(t_d[0], [-1, shape])
+    d = t_d[0]
+    if data.set_name == 'mnist':
+        shape = np.prod(DATASET_SHAPE[data.set_name][1:])
+        d = tf.reshape(t_d[0], [-1, shape])
     pred = model([d], training=False)
 
     acc = eval.acc(t_d[1], pred)

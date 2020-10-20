@@ -61,7 +61,7 @@ def main(name, batch_size, max_iter=150000, set_name='cifar10', num_labeled=1000
 
 
 if __name__ == '__main__':
-    set_name = 'cifar'
+    set_name = 'cifar10'
     name = 'mb4000'
     restore_file = os.path.join(ROOT_PATH, 'result', set_name, 'model', 'consistency_05Oct-1318', '_149999-30')
     share_encoder = False

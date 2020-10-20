@@ -35,7 +35,7 @@ class BasicData(object):
             return label_table_labeled.lookup(_fkey)
 
         def f_unlabeled(_image, _label, _fkey):
-            return label_table_unlabeled.lookup(_fkey)
+            return True  # label_table_unlabeled.lookup(_fkey)
 
         return f_labeled, f_unlabeled
 
@@ -45,9 +45,9 @@ class BasicData(object):
         filter_1, filter_2 = self._f_semi_supervised_filtering()
 
         s_data = tf.data.TFRecordDataset(processing.get_filenames(self.set_name, 'train')
-                                         ).map(parser, num_parallel_calls=8).prefetch(50)
+                                         ).map(parser, num_parallel_calls=16).prefetch(100)
         u_data = tf.data.TFRecordDataset(processing.get_filenames(self.set_name, 'train')
-                                         ).map(parser, num_parallel_calls=8).prefetch(50)
+                                         ).map(parser, num_parallel_calls=16).prefetch(100)
 
         s_data = s_data.filter(filter_1)
         u_data = u_data.filter(filter_2)

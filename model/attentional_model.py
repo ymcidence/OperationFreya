@@ -85,7 +85,7 @@ class AttentionalModel(tf.keras.Model):
 
         ramp = np.exp(-5 * (1 - epoch) * (1 - epoch))
 
-        loss = loss_ae + 1. * loss_cls + loss_cons * .5
+        loss = loss_ae + .5 * loss_cls + loss_cons * .5
 
         if step >= 0:
             tf.summary.scalar('loss_all/loss', loss, step=step)

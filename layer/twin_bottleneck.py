@@ -35,7 +35,7 @@ class MemoryBottleneck(tf.keras.layers.Layer):
         """
 
         _x = tf.squeeze(x)
-        att = tf.matmul(x, memory, transpose_b=True)
+        att = tf.matmul(_x, memory, transpose_b=True)
         d_model = tf.cast(tf.shape(memory)[1], dtype=tf.float32)
         att = tf.nn.softmax(att / tf.math.sqrt(d_model), axis=-1)  # [N M]
 

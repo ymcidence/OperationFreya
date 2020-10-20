@@ -39,6 +39,6 @@ class MemoryBottleneck(tf.keras.layers.Layer):
         d_model = tf.cast(tf.shape(memory)[1], dtype=tf.float32)
         att = tf.nn.softmax(att / tf.math.sqrt(d_model), axis=-1)  # [N M]
 
-        y = tf.matmul(att, memory, transpose_b=True)
+        y = tf.matmul(att, memory, transpose_b=False)
 
         return tf.expand_dims(y, 0)

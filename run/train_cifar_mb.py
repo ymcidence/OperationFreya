@@ -64,7 +64,7 @@ if __name__ == '__main__':
     # noinspection PyUnresolvedReferences
     tf.config.run_functions_eagerly(False)
     set_name = 'cifar10'
-    name = 'mb4000'
+    name = 'mb4000_new'
     restore_file = os.path.join(ROOT_PATH, 'result', set_name, 'model', 'consistency_05Oct-1318', '_149999-30')
     share_encoder = False
     batch_size = [100, 150]

@@ -4,6 +4,7 @@ import numpy as np
 
 from layer import mnist, cls, cifar, svhn
 from layer.transformer.isab import InducedSetAttentionBlock
+from layer.twin_bottleneck import MemoryBottleneck
 from util.data.basic_data import BasicData as Data
 from util.data.processing import DATASET_CLASS_COUNT, DATASET_SHAPE, DATASET_EXAMPLE_COUNT, img_processing
 from util import eval
@@ -93,6 +94,11 @@ class AttentionalModel(tf.keras.Model):
             tf.summary.scalar('loss_vq/ramp', ramp, step=step)
 
         return loss
+
+
+class MBModel(AttentionalModel):
+    def _agg(self):
+        self.aggregator = MemoryBottleneck()
 
 
 def step_train(model: AttentionalModel, data: Data, opt: tf.keras.optimizers.Optimizer, step):

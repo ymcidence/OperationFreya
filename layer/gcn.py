@@ -6,10 +6,12 @@ OVERFLOW_MARGIN = 1e-8
 
 
 class GCNLayer(tf.keras.layers.Layer):
-    def __init__(self, out_dim, **kwargs):
+    def __init__(self, out_dim, fc=True, **kwargs):
         super().__init__(**kwargs)
         self.out_dim = out_dim
-        self.fc = tf.keras.layers.Dense(out_dim)
+        self.fc = fc
+        if fc:
+            self.fc = tf.keras.layers.Dense(out_dim)
 
     # noinspection PyMethodOverriding
     def call(self, values, adjacency, **kwargs):
@@ -29,7 +31,7 @@ class GCNLayer(tf.keras.layers.Layer):
         :param adjacency: [N N] must be self-connected
         :return:
         """
-        fc_sc = self.fc(values)
+        fc_sc = self.fc(values) if self.fc else values
         conv_sc = self.graph_laplacian(adjacency) @ fc_sc
         return conv_sc
 

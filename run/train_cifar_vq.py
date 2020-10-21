@@ -66,7 +66,7 @@ if __name__ == '__main__':
     set_name = 'cifar10'
     name = 'vq4000_new'
     restore_file = os.path.join(ROOT_PATH, 'result', set_name, 'model', 'consistency_05Oct-1318', '_149999-30')
-    share_encoder = False
+    share_encoder = True
     batch_size = [100, 150]
     num_labeled = 4000
     main(name=name, batch_size=batch_size, max_iter=500000, set_name=set_name, num_labeled=num_labeled,

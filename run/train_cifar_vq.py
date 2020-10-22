@@ -42,6 +42,7 @@ def main(name, batch_size, max_iter=150000, set_name='cifar10', num_labeled=1000
     checkpoint = tf.train.Checkpoint(opt=opt, model=model)
     if restore is not None:
         # checkpoint_ = tf.train.Checkpoint(model=model)
+        print('loading checkpoints')
         checkpoint.restore(restore)
     for i in range(max_iter):
         with writer.as_default():

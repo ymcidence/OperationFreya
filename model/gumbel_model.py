@@ -99,7 +99,7 @@ class GumbelModel(tf.keras.Model):
 
         loss_cons = tf.reduce_mean(tf.square(tf.stop_gradient(softmax_pred) - _softmax_pred)) / 2.
 
-        ramp = np.exp(-5 * (1 - epoch) * (1 - epoch))
+        ramp = np.exp(-5 * np.sqrt((1 - epoch) * (1 - epoch)))
 
         loss = loss_ae + loss_cls + loss_cons * ramp
 

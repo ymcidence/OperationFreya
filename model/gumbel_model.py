@@ -92,7 +92,7 @@ class GumbelModel(tf.keras.Model):
             ll = label
         s_size = tf.shape(label)[0]
         s_pred = pred[:s_size, :]
-        loss_cls = tf.nn.softmax_cross_entropy_with_logits(labels=tf.stop_gradient(ll), logits=s_pred)
+        loss_cls = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf.stop_gradient(ll), logits=s_pred))
 
         softmax_pred = tf.nn.softmax(pred)
         _softmax_pred = tf.nn.softmax(_pred)

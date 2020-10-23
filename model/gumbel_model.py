@@ -86,8 +86,9 @@ class GumbelModel(tf.keras.Model):
             return tf.matmul(cls_input, self.context, transpose_b=True) + self.bias
 
     def obj(self, original, label, recon, pred, _pred, epoch, step=-1):
+        batch_size = tf.cast(tf.shape(original)[0], tf.float32)
 
-        loss_ae = tf.reduce_mean(tf.square(tf.stop_gradient(original) - recon)) / 2.
+        loss_ae = tf.nn.l2_loss(tf.stop_gradient(original) - recon) / batch_size / 2.
         if tf.shape(label).shape[0] < 2:
             ll = tf.one_hot(label, self.class_num)
         else:

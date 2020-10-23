@@ -48,6 +48,7 @@ def main(name, batch_size, max_iter=150000, set_name='cifar10', num_labeled=1000
             train_loss = step_train(model, data, opt1, opt2, i)
             if i == 0:
                 print(model.summary())
+                print(model.trainable_variables)
             if (i + 1) % 200 == 0:
                 print('Step: {}, Loss: {}'.format(i, train_loss.numpy()))
                 test_acc = step_val(model, data, i)

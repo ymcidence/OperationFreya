@@ -5,7 +5,7 @@ from model.attentional_model import ENCODEC
 from layer import functional
 from layer.gcn import GCNLayer
 from util.data.basic_data import BasicData as Data
-from util.data.processing import DATASET_EXAMPLE_COUNT, DATASET_SHAPE, DATASET_CLASS_COUNT, img_processing
+from util.data.processing import DATASET_EXAMPLE_COUNT, DATASET_SHAPE, img_processing
 from util import eval
 
 
@@ -92,7 +92,7 @@ class GumbelModel(tf.keras.Model):
             ll = label
         s_size = tf.shape(label)[0]
         s_pred = pred[:s_size, :]
-        loss_cls = self.classifier.obj(ll, s_pred, step)
+        loss_cls = tf.nn.softmax_cross_entropy_with_logits(labels=tf.stop_gradient(ll), logits=s_pred)
 
         softmax_pred = tf.nn.softmax(pred)
         _softmax_pred = tf.nn.softmax(_pred)
@@ -108,6 +108,7 @@ class GumbelModel(tf.keras.Model):
             tf.summary.scalar('loss_vq/likelihood', loss_ae, step=step)
             tf.summary.scalar('loss_vq/cons', loss_cons, step=step)
             tf.summary.scalar('loss_vq/ramp', ramp, step=step)
+            tf.summary.scalar('loss_cls/cls', loss_cls, step=step)
 
         return loss, loss_cls + loss_cons * ramp
 

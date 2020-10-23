@@ -71,7 +71,7 @@ class GumbelModel(tf.keras.Model):
             _logits = tf.matmul(_cls_input, self.context, transpose_b=True) + self.bias
 
             gumbel_prob = gumbel_softmax(logits, .1)
-            gumbel_feat = gumbel_prob @ tf.stop_gradient(self.context)
+            gumbel_feat = gumbel_prob @ self.context
 
             adj = functional.build_adjacency_v1(gumbel_feat)
             bn = self.aggregator(enc, adj, training=training)
@@ -81,6 +81,8 @@ class GumbelModel(tf.keras.Model):
             return recon, logits, _logits
         else:
             cls_input = self.encoder(inputs[0], training=training) if self.share_encoder else inputs[0]
+            cls_input = self.fc1(cls_input, training=training)
+
             return tf.matmul(cls_input, self.context, transpose_b=True) + self.bias
 
     def obj(self, original, label, recon, pred, _pred, epoch, step=-1):

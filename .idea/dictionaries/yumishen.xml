@@ -4,6 +4,8 @@
       <w>cifar</w>
       <w>conv</w>
       <w>isab</w>
+      <w>logits</w>
+      <w>softmax</w>
       <w>svhn</w>
     </words>
   </dictionary>

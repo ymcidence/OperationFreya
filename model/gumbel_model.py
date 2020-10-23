@@ -131,14 +131,14 @@ def step_train(model: GumbelModel, data: Data, opt1: tf.keras.optimizers.Optimiz
     batch_feed = [s1, s2, u1, u2, s_d[1], u_d[1]]
     batch_feed = [tf.identity(i) for i in batch_feed]
     summary_step = -1 if step % 50 > 0 else step
-    with tf.GradientTape() as tape1, tf.GradientTape() as tape2:
+    with tf.GradientTape() as tape1:  # , tf.GradientTape() as tape2:
         x, pred, _pred = model(batch_feed, training=True, step=summary_step)
         img = tf.concat([s1, u1], axis=0)
         loss1, loss2 = model.obj(img, s_d[1], x, pred, _pred, epoch, step=summary_step)
-        gradient1 = tape1.gradient(loss1, sources=model.trainable_variables)
-        gradient2 = tape2.gradient(loss2, sources=model.trainable_variables)
+        gradient1 = tape1.gradient(loss1 + loss2, sources=model.trainable_variables)
+        # gradient2 = tape2.gradient(loss2, sources=model.trainable_variables)
         opt1.apply_gradients(zip(gradient1, model.trainable_variables))
-        opt2.apply_gradients(zip(gradient2, model.trainable_variables))
+        # opt2.apply_gradients(zip(gradient2, model.trainable_variables))
     if summary_step >= 0:
         acc = eval.acc(s_d[1], pred[:data.s_size, :])
         err = 1 - acc

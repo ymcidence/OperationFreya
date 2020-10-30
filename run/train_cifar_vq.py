@@ -2,8 +2,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os
 import tensorflow as tf
 from time import gmtime, strftime
-from model.attentional_model import AttentionalModel as Model
-from model.attentional_model import step_val, step_train
+from model.vq_model import VQModel as Model
+from model.vq_model import step_val, step_train
 
 from util.data.basic_data import BasicData as Data
 from util.data.processing import DATASET_CLASS_COUNT
@@ -12,8 +12,8 @@ from util.data.processing import DATASET_CLASS_COUNT
 from meta import ROOT_PATH
 
 
-def main(name, batch_size, max_iter=150000, set_name='mnist', num_labeled=100, share_encoder=True, restore=None):
-    latent_size = 256
+def main(name, batch_size, max_iter=150000, set_name='cifar10', num_labeled=1000, share_encoder=True, restore=None):
+    latent_size = 192
     class_num = DATASET_CLASS_COUNT[set_name]
 
     l2 = False
@@ -27,8 +27,6 @@ def main(name, batch_size, max_iter=150000, set_name='mnist', num_labeled=100, s
     opt = tf.keras.optimizers.Adam(lr)
 
     # opt = tf.optimizers.RMSprop(lr)
-
-    # name = 'augNL{}Share{}Tmp{}l2{}LS{}'.format(num_labeled, share_encoder, temp, l2, latent_size)
 
     time_string = name + '_' + strftime("%d%b-%H%M", gmtime())
     result_path = os.path.join(ROOT_PATH, 'result', set_name)
@@ -62,9 +60,13 @@ def main(name, batch_size, max_iter=150000, set_name='mnist', num_labeled=100, s
 
 
 if __name__ == '__main__':
-    set_name = 'mnist'
-    name = 'not_sharing'
-    restore_file = os.path.join(ROOT_PATH, 'result', set_name, 'model', 'consistency_05Oct-1318', '_149999-30')
-    share_encoder = False
+    # noinspection PyUnresolvedReferences
+    tf.config.run_functions_eagerly(False)
+    set_name = 'cifar10'
+    name = 'vq4000_cont'
+    restore_file = os.path.join(ROOT_PATH, 'result', set_name, 'model', 'vq4000_new_21Oct-0314', '_499999-100')
+    share_encoder = True
     batch_size = [100, 150]
-    main(name=name, batch_size=batch_size, max_iter=350000, set_name='mnist', share_encoder=share_encoder, restore=None)
+    num_labeled = 4000
+    main(name=name, batch_size=batch_size, max_iter=500000, set_name=set_name, num_labeled=num_labeled,
+         share_encoder=share_encoder, restore=restore_file)

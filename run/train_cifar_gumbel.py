@@ -2,8 +2,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os
 import tensorflow as tf
 from time import gmtime, strftime
-from model.attentional_model import AttentionalModel as Model
-from model.attentional_model import step_val, step_train
+from model.gumbel_model import GumbelModel as Model
+from model.gumbel_model import step_val, step_train
 
 from util.data.basic_data import BasicData as Data
 from util.data.processing import DATASET_CLASS_COUNT
@@ -12,8 +12,8 @@ from util.data.processing import DATASET_CLASS_COUNT
 from meta import ROOT_PATH
 
 
-def main(name, batch_size, max_iter=150000, set_name='mnist', num_labeled=100, share_encoder=True, restore=None):
-    latent_size = 256
+def main(name, batch_size, max_iter=150000, set_name='cifar10', num_labeled=1000, share_encoder=True, restore=None):
+    latent_size = 192
     class_num = DATASET_CLASS_COUNT[set_name]
 
     l2 = False
@@ -24,11 +24,8 @@ def main(name, batch_size, max_iter=150000, set_name='mnist', num_labeled=100, s
     lr = 2e-4
     # opt = tf.keras.optimizers.Adam(lr, beta_1=0.9, beta_2=0.98,
     #                                epsilon=1e-9)
-    opt = tf.keras.optimizers.Adam(lr)
-
-    # opt = tf.optimizers.RMSprop(lr)
-
-    # name = 'augNL{}Share{}Tmp{}l2{}LS{}'.format(num_labeled, share_encoder, temp, l2, latent_size)
+    opt1 = tf.keras.optimizers.Adam(lr)
+    opt2 = tf.keras.optimizers.Adam(lr)
 
     time_string = name + '_' + strftime("%d%b-%H%M", gmtime())
     result_path = os.path.join(ROOT_PATH, 'result', set_name)
@@ -41,16 +38,17 @@ def main(name, batch_size, max_iter=150000, set_name='mnist', num_labeled=100, s
 
     writer = tf.summary.create_file_writer(summary_path)
 
-    checkpoint = tf.train.Checkpoint(opt=opt, model=model)
+    checkpoint = tf.train.Checkpoint(opt1=opt1, opt2=opt2, model=model)
     if restore is not None:
         # checkpoint_ = tf.train.Checkpoint(model=model)
         print('loading checkpoints')
         checkpoint.restore(restore)
     for i in range(max_iter):
         with writer.as_default():
-            train_loss = step_train(model, data, opt, i)
+            train_loss = step_train(model, data, opt1, opt2, i)
             if i == 0:
                 print(model.summary())
+                print(model.trainable_variables)
             if (i + 1) % 200 == 0:
                 print('Step: {}, Loss: {}'.format(i, train_loss.numpy()))
                 test_acc = step_val(model, data, i)
@@ -62,9 +60,12 @@ def main(name, batch_size, max_iter=150000, set_name='mnist', num_labeled=100, s
 
 
 if __name__ == '__main__':
-    set_name = 'mnist'
-    name = 'not_sharing'
-    restore_file = os.path.join(ROOT_PATH, 'result', set_name, 'model', 'consistency_05Oct-1318', '_149999-30')
-    share_encoder = False
+    # noinspection PyUnresolvedReferences
+    tf.config.run_functions_eagerly(False)
+    set_name = 'cifar10'
+    name = 'gumbel4000'
+    share_encoder = True
     batch_size = [100, 150]
-    main(name=name, batch_size=batch_size, max_iter=350000, set_name='mnist', share_encoder=share_encoder, restore=None)
+    num_labeled = 4000
+    main(name=name, batch_size=batch_size, max_iter=500000, set_name=set_name, num_labeled=num_labeled,
+         share_encoder=share_encoder, restore=None)

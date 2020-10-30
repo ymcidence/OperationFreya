@@ -43,7 +43,7 @@ def _decoding_v1():
         _t_conv_unit(256, 5, 2, 1),
         _t_conv_unit(128, 5, 2, 1),
         tf.keras.layers.Conv2DTranspose(3, 5, 2, padding='SAME', output_padding=1, data_format='channels_last'),
-        Dummy(tf.nn.tanh)])
+        tf.keras.layers.BatchNormalization()])
 
     return net
 

@@ -1,43 +1,19 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import tensorflow as tf
 import numpy as np
-
-from layer import mnist, cls, cifar, svhn
-from layer.transformer.isab import InducedSetAttentionBlock
-from layer.twin_bottleneck import MemoryBottleneck
+from model.attentional_model import AttentionalModel
+from layer.gcn import GCNLayer
+from layer import functional
 from util.data.basic_data import BasicData as Data
-from util.data.processing import DATASET_CLASS_COUNT, DATASET_SHAPE, DATASET_EXAMPLE_COUNT, img_processing
+from util.data.processing import DATASET_EXAMPLE_COUNT, DATASET_SHAPE, DATASET_CLASS_COUNT, img_processing
 from util import eval
 
-ENCODEC = {'mnist': mnist,
-           'cifar10': cifar,
-           'svhn': svhn,
-           'svhn_extra': svhn,
-           'cifar_unnormalized': cifar}
 
-
-class AttentionalModel(tf.keras.Model):
-    def __init__(self, set_name, latent_size, class_num, share_encoder=True, temp=1., l2=False, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.set_name = set_name
-        self.latent_size = latent_size
-        self.class_num = class_num
-        self.share_encoder = share_encoder
-        self.temp = temp
-        self.l2 = l2
-        self.context = tf.Variable(initial_value=tf.random.normal([class_num, latent_size], stddev=.01), trainable=True,
-                                   dtype=tf.float32, name='ContextEmb')
-
-        self.encodec = ENCODEC[set_name]
-
-        self.encoder = self.encodec.Encoder()
-        self.decoder = self.encodec.Decoder()
-        self._agg()
-        cls_backbone = None if share_encoder else self.encodec.Encoder()
-        self.classifier = cls.ContextClassifier(latent_size, class_num, cls_backbone, temp, l2=l2)
+class VQModel(AttentionalModel):
 
     def _agg(self):
-        self.aggregator = InducedSetAttentionBlock(self.latent_size, 1, self.latent_size)
+        self.aggregator = GCNLayer(self.latent_size)
+        self.fc = tf.keras.layers.Dense(self.latent_size)
 
     def call(self, inputs, training=None, mask=None, step=-1):
 
@@ -52,22 +28,26 @@ class AttentionalModel(tf.keras.Model):
             cls_input = feat if self.share_encoder else img
             _cls_input = _feat if self.share_encoder else _img
 
-            # Original transformers accept [n t d] tensors. We have to reshape the encoded features into a [1 n d] tensor
-            feat = tf.expand_dims(feat, axis=0)
-            bn = self.aggregator(feat, self.context, training=training)
-            bn = tf.squeeze(bn)
+            pre_vq = self.fc(feat)  # [N D]
+
+            _, context_ind = functional.nearest_context(pre_vq, self.context)  # _ [N]
+            af_vq = functional.vq(pre_vq, self.context)  # [N D]
+            adj = functional.build_adjacency_v1(af_vq)  # [N N]
+
+            bn = self.aggregator(feat, adj, training=training)
 
             recon = self.decoder(bn, training=training)
             pred = self.classifier(cls_input, self.context, training=training, step=step)
             _pred = self.classifier(_cls_input, self.context, training=training, step=step)
 
-            return recon, pred, _pred
+            return recon, pred, _pred, pre_vq, context_ind
         else:
             cls_input = self.encoder(inputs[0], training=training) if self.share_encoder else inputs[0]
             pred = self.classifier(cls_input, self.context, training=training)
             return pred
 
-    def obj(self, original, label, recon, pred, _pred, epoch, step=-1):
+    # noinspection PyMethodOverriding
+    def obj(self, original, label, recon, pred, _pred, pre_vq, context_ind, epoch, step=-1):
 
         loss_ae = tf.reduce_mean(tf.square(tf.stop_gradient(original) - recon)) / 2.
         if tf.shape(label).shape[0] < 2:
@@ -83,25 +63,23 @@ class AttentionalModel(tf.keras.Model):
 
         loss_cons = tf.reduce_mean(tf.square(tf.stop_gradient(softmax_pred) - _softmax_pred)) / 2.
 
-        ramp = np.exp(-5 * (1 - epoch) * (1 - epoch))
+        indexed_emb = context_ind @ self.context
+        kl_1 = tf.reduce_mean(tf.square(tf.stop_gradient(pre_vq) - indexed_emb)) / 2.
+        kl_2 = .25 * tf.reduce_mean(tf.square(tf.stop_gradient(indexed_emb) - pre_vq)) / 2.
 
-        loss = loss_ae + .5 * loss_cls + loss_cons * .5
+        loss = 2. * loss_ae + .5 * loss_cls + loss_cons * .5 + kl_1 + kl_2
 
         if step >= 0:
             tf.summary.scalar('loss_all/loss', loss, step=step)
             tf.summary.scalar('loss_vq/likelihood', loss_ae, step=step)
             tf.summary.scalar('loss_vq/cons', loss_cons, step=step)
-            tf.summary.scalar('loss_vq/ramp', ramp, step=step)
+            tf.summary.scalar('loss_vq/kl_1', kl_1, step=step)
+            tf.summary.scalar('loss_vq/kl_2', kl_2, step=step)
 
         return loss
 
 
-class MBModel(AttentionalModel):
-    def _agg(self):
-        self.aggregator = MemoryBottleneck()
-
-
-def step_train(model: AttentionalModel, data: Data, opt: tf.keras.optimizers.Optimizer, step):
+def step_train(model: VQModel, data: Data, opt: tf.keras.optimizers.Optimizer, step):
     epoch = step // (DATASET_EXAMPLE_COUNT['train'][data.set_name] / data.batch_size)
     s_d, u_d = data.next_train()
 
@@ -119,9 +97,9 @@ def step_train(model: AttentionalModel, data: Data, opt: tf.keras.optimizers.Opt
     batch_feed = [tf.identity(i) for i in batch_feed]
     summary_step = -1 if step % 50 > 0 else step
     with tf.GradientTape() as tape:
-        x, pred, _pred = model(batch_feed, training=True, step=summary_step)
+        x, pred, _pred, pre_vq, context_ind = model(batch_feed, training=True, step=summary_step)
         img = tf.concat([s1, u1], axis=0)
-        loss = model.obj(img, s_d[1], x, pred, _pred, epoch, step=summary_step)
+        loss = model.obj(img, s_d[1], x, pred, _pred, pre_vq, context_ind, epoch, step=summary_step)
         gradient = tape.gradient(loss, sources=model.trainable_variables)
         opt.apply_gradients(zip(gradient, model.trainable_variables))
     if summary_step >= 0:

@@ -5,8 +5,8 @@ from layer.functional import Dummy
 
 
 def _encoding_v1(filter_size=(64, 128, 128), p=.5):
-    def _conv_unit(_f, _k):
-        return tf.keras.Sequential([tf.keras.layers.Conv2D(_f, _k, padding='SAME', data_format='channels_last'),
+    def _conv_unit(_f, _k, padding='SAME'):
+        return tf.keras.Sequential([tf.keras.layers.Conv2D(_f, _k, padding=padding, data_format='channels_last'),
                                     tf.keras.layers.BatchNormalization(),
                                     tf.keras.layers.LeakyReLU(.1)])
 
@@ -20,10 +20,32 @@ def _encoding_v1(filter_size=(64, 128, 128), p=.5):
                                _conv_unit(filter_size[1], 3),
                                tf.keras.layers.MaxPool2D(strides=2, padding='SAME', data_format='channels_last'),
                                tf.keras.layers.Dropout(p),
-                               _conv_unit(filter_size[2], 3),
+                               _conv_unit(filter_size[2], 3, 'VALID'),
                                _conv_unit(filter_size[2], 1),
                                _conv_unit(filter_size[2], 1)])
 
+    return net
+
+
+def _encoding_v2():
+    def _conv_unit(_f, _k, padding='SAME'):
+        return tf.keras.Sequential([tf.keras.layers.Conv2D(_f, _k, padding=padding, data_format='channels_last'),
+                                    tf.keras.layers.BatchNormalization(),
+                                    tf.keras.layers.LeakyReLU(.1)])
+
+    net = tf.keras.Sequential([_conv_unit(128, 3),
+                               _conv_unit(128, 3),
+                               _conv_unit(128, 3),
+                               tf.keras.layers.MaxPool2D(strides=2, data_format='channels_last'),
+                               tf.keras.layers.Dropout(.5),
+                               _conv_unit(256, 3),
+                               _conv_unit(256, 3),
+                               _conv_unit(256, 3),
+                               tf.keras.layers.MaxPool2D(strides=2, data_format='channels_last'),
+                               tf.keras.layers.Dropout(.5),
+                               _conv_unit(512, 3, padding='VALID'),
+                               _conv_unit(256, 3),
+                               _conv_unit(128, 3)])
     return net
 
 
@@ -58,6 +80,6 @@ class CNNDecoder(tf.keras.layers.Layer):
 
 
 if __name__ == '__main__':
-    model = CNNDecoder()
-    img = tf.zeros([5, 128])
+    model = _encoding_v1()
+    img = tf.zeros([5, 32, 32, 3])
     print(model(img))

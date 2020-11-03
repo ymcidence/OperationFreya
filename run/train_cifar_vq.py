@@ -67,6 +67,6 @@ if __name__ == '__main__':
     restore_file = os.path.join(ROOT_PATH, 'result', set_name, 'model', 'vq4000_new_21Oct-0314', '_499999-100')
     share_encoder = True
     batch_size = [100, 150]
-    num_labeled = 4000
+    num_labeled = 8000
     main(name=name, batch_size=batch_size, max_iter=500000, set_name=set_name, num_labeled=num_labeled,
          share_encoder=share_encoder, restore=None)

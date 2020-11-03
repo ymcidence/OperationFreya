@@ -69,7 +69,7 @@ class VQModel(AttentionalModel):
         kl_2 = .25 * tf.reduce_mean(tf.square(tf.stop_gradient(indexed_emb) - pre_vq)) / 2.
 
         ramp = ramp_up(epoch)
-        loss = (loss_ae + loss_cons * .5 + kl_1 + kl_2) * ramp + loss_cls
+        loss = (loss_ae + loss_cons + kl_1 + kl_2) * ramp + loss_cls
 
         if step >= 0:
             tf.summary.scalar('loss_all/loss', loss, step=step)

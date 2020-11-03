@@ -69,4 +69,4 @@ if __name__ == '__main__':
     batch_size = [100, 150]
     num_labeled = 4000
     main(name=name, batch_size=batch_size, max_iter=500000, set_name=set_name, num_labeled=num_labeled,
-         share_encoder=share_encoder, restore=restore_file)
+         share_encoder=share_encoder, restore=None)

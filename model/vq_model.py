@@ -83,7 +83,7 @@ class VQModel(AttentionalModel):
 
 
 def step_train(model: VQModel, data: Data, opt: tf.keras.optimizers.Optimizer, step):
-    epoch = step // (DATASET_EXAMPLE_COUNT['train'][data.set_name] / data.batch_size)
+    epoch = step // (DATASET_EXAMPLE_COUNT['train'][data.set_name] / data.batch_size) + 1
     s_d, u_d = data.next_train()
 
     s1 = img_processing(s_d[0])

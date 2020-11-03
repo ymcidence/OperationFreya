@@ -13,7 +13,7 @@ from meta import ROOT_PATH
 
 
 def main(name, batch_size, max_iter=150000, set_name='cifar10', num_labeled=1000, share_encoder=True, restore=None):
-    latent_size = 192
+    latent_size = 128
     class_num = DATASET_CLASS_COUNT[set_name]
 
     l2 = False

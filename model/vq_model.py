@@ -7,6 +7,7 @@ from layer import functional
 from util.data.basic_data import BasicData as Data
 from util.data.processing import DATASET_EXAMPLE_COUNT, DATASET_SHAPE, DATASET_CLASS_COUNT, img_processing
 from util import eval
+from util.scheduler import ramp_up
 
 
 class VQModel(AttentionalModel):
@@ -67,7 +68,8 @@ class VQModel(AttentionalModel):
         kl_1 = tf.reduce_mean(tf.square(tf.stop_gradient(pre_vq) - indexed_emb)) / 2.
         kl_2 = .25 * tf.reduce_mean(tf.square(tf.stop_gradient(indexed_emb) - pre_vq)) / 2.
 
-        loss = 2. * loss_ae + .5 * loss_cls + loss_cons * .5 + kl_1 + kl_2
+        ramp = ramp_up(epoch)
+        loss = (loss_ae + loss_cons * .5 + kl_1 + kl_2) * ramp + loss_cls
 
         if step >= 0:
             tf.summary.scalar('loss_all/loss', loss, step=step)
@@ -75,6 +77,7 @@ class VQModel(AttentionalModel):
             tf.summary.scalar('loss_vq/cons', loss_cons, step=step)
             tf.summary.scalar('loss_vq/kl_1', kl_1, step=step)
             tf.summary.scalar('loss_vq/kl_2', kl_2, step=step)
+            tf.summary.scalar('loss_all/ramp', ramp, step=step)
 
         return loss
 

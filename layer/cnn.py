@@ -29,7 +29,8 @@ def _encoding_v1(filter_size=(64, 128, 128), p=.5):
 
 def _encoding_v2():
     def _conv_unit(_f, _k, padding='SAME'):
-        return tf.keras.Sequential([tf.keras.layers.Conv2D(_f, _k, padding=padding, data_format='channels_last'),
+        return tf.keras.Sequential([tf.keras.layers.Conv2D(_f, _k, padding=padding, data_format='channels_last',
+                                                           kernel_initializer=tf.keras.initializers.HeNormal()),
                                     tf.keras.layers.BatchNormalization(),
                                     tf.keras.layers.LeakyReLU(.1)])
 
@@ -80,6 +81,6 @@ class CNNDecoder(tf.keras.layers.Layer):
 
 
 if __name__ == '__main__':
-    model = _encoding_v1()
+    model = _encoding_v2()
     img = tf.zeros([5, 32, 32, 3])
     print(model(img))

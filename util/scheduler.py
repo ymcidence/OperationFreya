@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import tensorflow as tf
+import numpy as np
 
 
 class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
@@ -29,3 +30,14 @@ if __name__ == '__main__':
         arg1 = tf.math.rsqrt(step)
         arg2 = step * (warmup_steps ** -1.5)
         print(i, tf.math.rsqrt(d_model) * tf.math.minimum(arg1, arg2))
+
+
+def ramp_up(e):
+    if e <= 80:
+        return np.exp(-5 * (1 - e / 80) * (1 - e / 80))
+    elif e <= 250:
+        return 1
+    elif e <= 300:
+        return np.exp(-12.5 * (1 - (300 - e) / 50) * (1 - (300 - e) / 50))
+    else:
+        return np.exp(-12.5 * (1 - (300 - 300) / 50) * (1 - (300 - 300) / 50))

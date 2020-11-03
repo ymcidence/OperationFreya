@@ -4,9 +4,9 @@ import tensorflow as tf
 import numpy as np
 
 
-class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
+class customschedule(tf.keras.optimizers.schedules.learningrateschedule):
     def __init__(self, d_model, warmup_steps=4000):
-        super(CustomSchedule, self).__init__()
+        super(customschedule, self).__init__()
 
         self.d_model = d_model
         self.d_model = tf.cast(self.d_model, tf.float32)
@@ -33,11 +33,11 @@ if __name__ == '__main__':
 
 
 def ramp_up(e):
-    if e <= 80:
-        return np.exp(-5 * (1 - e / 80) * (1 - e / 80))
-    elif e <= 250:
+    if e <= 100:
+        return np.exp(-5 * (1 - e / 100) * (1 - e / 100))
+    elif e <= 500:
         return 1
-    elif e <= 300:
-        return np.exp(-12.5 * (1 - (300 - e) / 50) * (1 - (300 - e) / 50))
+    elif e <= 1200:
+        return np.exp(-12.5 * (1 - (1500 - e) / 1000) * (1 - (1500 - e) / 1000))
     else:
-        return np.exp(-12.5 * (1 - (300 - 300) / 50) * (1 - (300 - 300) / 50))
+        return np.exp(-12.5 * (1 - (1500 - 1200) / 1000) * (1 - (1500 - 1200) / 1000))

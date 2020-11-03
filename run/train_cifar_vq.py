@@ -63,7 +63,7 @@ if __name__ == '__main__':
     # noinspection PyUnresolvedReferences
     tf.config.run_functions_eagerly(False)
     set_name = 'cifar10'
-    name = 'vq4000_cont'
+    name = 'vq4000_large'
     restore_file = os.path.join(ROOT_PATH, 'result', set_name, 'model', 'vq4000_new_21Oct-0314', '_499999-100')
     share_encoder = True
     batch_size = [100, 150]

@@ -13,12 +13,12 @@ from meta import ROOT_PATH
 
 
 def main(name, batch_size, max_iter=150000, set_name='cifar10', num_labeled=1000, share_encoder=True, restore=None):
-    latent_size = 128
+    latent_size = 256
     class_num = DATASET_CLASS_COUNT[set_name]
 
     l2 = False
     temp = 1
-    model = Model(set_name, latent_size, class_num, share_encoder=share_encoder, temp=temp, l2=l2)
+    model = Model(set_name, latent_size, class_num, share_encoder=share_encoder, temp=temp, l2=l2, para_cls=False)
     data = Data(set_name, batch_size, num_labeled=num_labeled, label_map_index=0)
     # lr = scheduler.CustomSchedule(latent_size, 2000)
     lr = 2e-4
@@ -63,10 +63,10 @@ if __name__ == '__main__':
     # noinspection PyUnresolvedReferences
     tf.config.run_functions_eagerly(False)
     set_name = 'cifar10'
-    name = 'vq4000_large'
+    name = 'vq4000_large_new'
     restore_file = os.path.join(ROOT_PATH, 'result', set_name, 'model', 'vq4000_new_21Oct-0314', '_499999-100')
     share_encoder = True
     batch_size = [100, 150]
-    num_labeled = 4000
+    num_labeled = 8000
     main(name=name, batch_size=batch_size, max_iter=500000, set_name=set_name, num_labeled=num_labeled,
          share_encoder=share_encoder, restore=None)

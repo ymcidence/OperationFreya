@@ -14,7 +14,9 @@ class VQModel(AttentionalModel):
 
     def _agg(self):
         self.aggregator = GCNLayer(self.latent_size)
-        self.fc = tf.keras.layers.Dense(self.latent_size)
+        self.fc = tf.keras.Sequential([tf.keras.layers.Dense(self.latent_size),
+                                       tf.keras.layers.Dropout(.3)
+                                       ])
 
     def call(self, inputs, training=None, mask=None, step=-1):
 
@@ -26,10 +28,11 @@ class VQModel(AttentionalModel):
             feat = self.encoder(img, training=training)
             _feat = self.encoder(_img, training=training)
 
-            cls_input = feat if self.share_encoder else img
-            _cls_input = _feat if self.share_encoder else _img
+            pre_vq = self.fc(feat, training=training)  # [N D]
+            _pre_vq = self.fc(_feat, training=training)
 
-            pre_vq = self.fc(feat)  # [N D]
+            cls_input = pre_vq if self.share_encoder else img
+            _cls_input = _pre_vq if self.share_encoder else _img
 
             _, context_ind = functional.nearest_context(pre_vq, self.context)  # _ [N]
             af_vq = functional.vq(pre_vq, self.context)  # [N D]
@@ -43,8 +46,9 @@ class VQModel(AttentionalModel):
 
             return recon, pred, _pred, pre_vq, context_ind
         else:
-            cls_input = self.encoder(inputs[0], training=training) if self.share_encoder else inputs[0]
-            pred = self.classifier(cls_input, self.context, training=training)
+            cls_input = self.encoder(inputs[0], training=False) if self.share_encoder else inputs[0]
+            cls_input = self.fc(cls_input, training=False)
+            pred = self.classifier(cls_input, self.context, training=False)
             return pred
 
     # noinspection PyMethodOverriding
@@ -57,6 +61,7 @@ class VQModel(AttentionalModel):
             ll = label
         s_size = tf.shape(label)[0]
         s_pred = pred[:s_size, :]
+        u_pred = pred[s_size:, :]
         loss_cls = self.classifier.obj(ll, s_pred, step)
 
         softmax_pred = tf.nn.softmax(pred)
@@ -68,8 +73,11 @@ class VQModel(AttentionalModel):
         kl_1 = tf.reduce_mean(tf.square(tf.stop_gradient(pre_vq) - indexed_emb)) / 2.
         kl_2 = .25 * tf.reduce_mean(tf.square(tf.stop_gradient(indexed_emb) - pre_vq)) / 2.
 
+        cat = tf.compat.v1.distributions.Categorical(probs=tf.nn.softmax(u_pred))
+        loss_ent = tf.reduce_mean(cat.entropy())
+
         ramp = ramp_up(epoch)
-        loss = (loss_ae + loss_cons + kl_1 + kl_2) * ramp + loss_cls
+        loss = (loss_ae + loss_cons + kl_1 + kl_2 + loss_ent) * ramp + loss_cls
 
         if step >= 0:
             tf.summary.scalar('loss_all/loss', loss, step=step)
@@ -77,6 +85,7 @@ class VQModel(AttentionalModel):
             tf.summary.scalar('loss_vq/cons', loss_cons, step=step)
             tf.summary.scalar('loss_vq/kl_1', kl_1, step=step)
             tf.summary.scalar('loss_vq/kl_2', kl_2, step=step)
+            tf.summary.scalar('loss/ent', loss_ent, step=step)
             tf.summary.scalar('loss_all/ramp', ramp, step=step)
 
         return loss

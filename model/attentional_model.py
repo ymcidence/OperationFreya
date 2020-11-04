@@ -17,7 +17,8 @@ ENCODEC = {'mnist': mnist,
 
 
 class AttentionalModel(tf.keras.Model):
-    def __init__(self, set_name, latent_size, class_num, share_encoder=True, temp=1., l2=False, *args, **kwargs):
+    def __init__(self, set_name, latent_size, class_num, share_encoder=True, temp=1., l2=False,
+                 para_cls=True, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.set_name = set_name
         self.latent_size = latent_size
@@ -34,7 +35,10 @@ class AttentionalModel(tf.keras.Model):
         self.decoder = self.encodec.Decoder()
         self._agg()
         cls_backbone = None if share_encoder else self.encodec.Encoder()
-        self.classifier = cls.ContextClassifier(latent_size, class_num, cls_backbone, temp, l2=l2)
+        self.classifier = cls.ContextClassifier(latent_size, class_num, cls_backbone, temp,
+                                                l2=l2) if para_cls else cls.DistanceClassifier(latent_size, class_num,
+                                                                                               cls_backbone, temp,
+                                                                                               l2=l2)
 
     def _agg(self):
         self.aggregator = InducedSetAttentionBlock(self.latent_size, 1, self.latent_size)

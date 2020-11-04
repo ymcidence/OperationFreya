@@ -23,12 +23,9 @@ class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
 def ramp_up(e):
     if e <= 100:
         return np.exp(-5 * (1 - e / 100) * (1 - e / 100))
-    elif e <= 500:
-        return 1
-    elif e <= 1200:
-        return np.exp(-12.5 * (1 - (1500 - e) / 1000) * (1 - (1500 - e) / 1000))
     else:
-        return np.exp(-12.5 * (1 - (1500 - 1200) / 1000) * (1 - (1500 - 1200) / 1000))
+        return 1
+
 
 
 if __name__ == '__main__':

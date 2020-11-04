@@ -2,6 +2,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import tensorflow as tf
 
+class DistanceClassifier():
+    pass
 
 class ContextClassifier(tf.keras.layers.Layer):
     def __init__(self, latent_size, class_num, backbone=None, temp=.07, l2=False, **kwargs):
@@ -24,9 +26,9 @@ class ContextClassifier(tf.keras.layers.Layer):
             tf.keras.layers.Dense(latent_size),
             tf.keras.layers.BatchNormalization(),
             tf.keras.layers.ReLU(),
-            tf.keras.layers.Dropout(.1)
+            tf.keras.layers.Dropout(.3)
         ])
-        self.bn = tf.keras.layers.BatchNormalization()
+        # self.bn = tf.keras.layers.BatchNormalization()
 
     # noinspection PyMethodOverriding
     def call(self, inputs, context, training=True, step=-1, **kwargs) -> tf.Tensor:
@@ -43,8 +45,8 @@ class ContextClassifier(tf.keras.layers.Layer):
         x = self.fc(x, training=training)
         if self.l2:
             x = tf.nn.l2_normalize(x, axis=1)  # [N d]
-        x = tf.matmul(x, context, transpose_b=True) + self.bias
-        x = self.bn(x, training=training) / self.temp
+        x = tf.matmul(x, context, transpose_b=True)# + self.bias
+        x = x / self.temp
         return x
 
     @staticmethod
